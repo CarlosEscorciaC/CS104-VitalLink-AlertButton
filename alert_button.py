@@ -1,8 +1,19 @@
+
 import time
 import RPi.GPIO as GPIO
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BOT_TOKEN=os.getenv("BOT_TOKEN")
+CHAT_ID=os.getenv("CHAT_ID")
+
+url="https://api.telegram.org/bot"+BOT_TOKEN+"/sendMessage"
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(7,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 
 print("Alert button monitoring system is now active. Press Ctrl+C to stop.")
 
@@ -12,6 +23,13 @@ try:
     while True:
         if GPIO.input(7)==GPIO.HIGH and not button_pressed:
             print("Someone pressed the alert button!")
+
+            response=requests.post(
+                url,
+                json={"chat_id":CHAT_ID,"text":"Someone pressed the alert button!"}
+            )
+
+            print(response.json())
             button_pressed=True
 
         elif GPIO.input(7)==GPIO.LOW:
@@ -21,4 +39,6 @@ try:
 
 except KeyboardInterrupt:
     print("\nMonitoring stopped.")
+
+finally:
     GPIO.cleanup()
